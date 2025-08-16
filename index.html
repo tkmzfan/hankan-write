@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" dir="ltr">
   <head>
+    <base href="%BASE_URL%">
     <meta name="darkreader-lock">
     <meta charset="UTF-8" />
     <title>HanKan Write</title>
@@ -24,9 +25,9 @@
       console.log(Capacitor.getPlatform());
     </script>
 
-    <link rel="icon" type="image/x-icon" href=".public/assets/icon/favicon.ico" />
-    <link rel="manifest" href="./src/manifest.json" />
-    <link rel="stylesheet" href="./src/css/style.css" />
+    <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico" />
+    <link rel="manifest" href="src/manifest.json" />
+    <link rel="stylesheet" href="src/css/style.css" />
     <meta name="theme-color" content="#31d53d" />
 
     <style>
@@ -276,7 +277,7 @@
         switch(true) {
         case targetLang == "jp":
           if (Capacitor.isNativePlatform()){
-            orderList = '/assets/lists/kanji-jouyou.json';
+            orderList = 'assets/lists/kanji-jouyou.json';
           }         
           else {
             orderList = 'dist/assets/lists/kanji-jouyou.json';
@@ -295,10 +296,10 @@
           document.getElementById("jpinfo").hidden = true;
           document.getElementById("cninfo").hidden = false;
           if (Capacitor.isNativePlatform()){
-            dictList = '/assets/lists/chinese_characters.json';
+            dictList = 'assets/lists/chinese_characters.json';
             orderList = targetLang == "simp" 
-              ? '/assets/lists/simplified_chars_by_stroke.json'
-              : '/assets/lists/traditional_chars_by_stroke.json';
+              ? 'assets/lists/simplified_chars_by_stroke.json'
+              : 'assets/lists/traditional_chars_by_stroke.json';
           }
           else {
              dictList = 'dist/assets/lists/chinese_characters.json';
@@ -319,6 +320,6 @@
       }
     </script>
 
-    <script src="./src/cookie-popup.js" type="module"></script>
+    <script src="src/cookie-popup.js" type="module"></script>
   </body>
 </html>
