@@ -20,10 +20,6 @@
       nomodule
       src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.js"
     ></script>
-    <script type="module">
-      import { Capacitor } from 'https://cdn.jsdelivr.net/npm/@capacitor/core@latest/dist/index.js';
-      console.log(Capacitor.getPlatform());
-    </script>
 
     <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico" />
     <link rel="manifest" href="src/manifest.json" />
@@ -276,12 +272,7 @@
         _targetLang = targetLang;
         switch(true) {
         case targetLang == "jp":
-          if (Capacitor.isNativePlatform()){
-            orderList = 'assets/lists/kanji-jouyou.json';
-          }         
-          else {
-            orderList = 'dist/assets/lists/kanji-jouyou.json';
-          }
+          orderList = 'assets/lists/kanji-jouyou.json';      
           document.getElementById("jpinfo").hidden = false;
           document.getElementById("cninfo").hidden = true;
           return fetch(orderList)
@@ -295,19 +286,10 @@
         case targetLang == "simp":
           document.getElementById("jpinfo").hidden = true;
           document.getElementById("cninfo").hidden = false;
-          if (Capacitor.isNativePlatform()){
-            dictList = 'assets/lists/chinese_characters.json';
-            orderList = targetLang == "simp" 
-              ? 'assets/lists/simplified_chars_by_stroke.json'
-              : 'assets/lists/traditional_chars_by_stroke.json';
-          }
-          else {
-             dictList = 'dist/assets/lists/chinese_characters.json';
-              orderList = targetLang == "simp" 
-              ? 'dist/assets/lists/simplified_chars_by_stroke.json'
-              : 'dist/assets/lists/traditional_chars_by_stroke.json';
-          }
-          
+          dictList = 'assets/lists/chinese_characters.json';
+          orderList = targetLang == "simp" 
+            ? 'assets/lists/simplified_chars_by_stroke.json'
+            : 'assets/lists/traditional_chars_by_stroke.json';
           break;
         }
         return Promise.all([

@@ -1,12 +1,8 @@
-## Created with Capacitor Create App
+## Todo
 
-This app was created using [`@capacitor/create-app`](https://github.com/ionic-team/create-capacitor-app),
-and comes with a very minimal shell for building an app.
+Add SRS system
+Clean up Chinese character list
+Integrate anki progress
+Make UI nicer
 
-### Running this example
-
-To run the provided example, you can use `npm start` command.
-
-```bash
-npm start
-```
+**All contributions are welcome. Provided under the MIT license.**
