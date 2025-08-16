@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HanKan Write</string>
+    <string name="title_activity_main">HanKan Write</string>
+    <string name="package_name">com.hankanwrite.app</string>
+    <string name="custom_url_scheme">com.hankanwrite.app</string>
+</resources>

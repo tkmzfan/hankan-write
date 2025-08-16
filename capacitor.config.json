@@ -1,0 +1,10 @@
+{
+  "appId": "com.hankanwrite.app",
+  "appName": "HanKan Write",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true
+    }
+  }
+}
