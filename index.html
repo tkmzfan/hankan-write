@@ -192,8 +192,8 @@
           onComplete: function() {
             writer.updateColor('radicalColor', '#000')
             quizOn();
-        }
-      });
+          }
+        });
       }
       function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -214,7 +214,7 @@
       }
       async function next(delayTime, increment, done) {
         await delay(delayTime);
-        Number(currentIndex) += Number(increment);
+        currentIndex += Number(increment);
         setHanzi(hanziList[currentIndex]);
         quizOn();
       }
@@ -223,7 +223,7 @@
         console.log(input);
         try {
           if(Number.isInteger(parseInt(input))) { // Go to index
-          currentIndex = input;
+          currentIndex = parseInt(input, 10);
           setHanzi(hanziList[input]);        
           }
           else {
@@ -233,8 +233,7 @@
           quizOn();
         } catch (error) {
           console.log("Invalid input to skip")
-        }
-        
+        }     
       }
       function hint() {
         writer.highlightStroke(currentStroke);
