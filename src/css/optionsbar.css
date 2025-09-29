@@ -1,0 +1,39 @@
+/* Reduce z-index values so they don't cover everything */
+.settings-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100; /* Lower z-index */
+}
+
+.settings-sidebar {
+    position: fixed;
+    left: -400px;
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    z-index: 101; /* Lower z-index */
+    transition: left 0.3s ease;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 99; /* Lower than sidebar but higher than main content */
+    display: none;
+}
+
+.settings-btn {
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    outline: none;
+}

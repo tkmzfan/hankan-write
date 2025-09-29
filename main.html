@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <base href="%BASE_URL%">
+    <meta name="darkreader-lock">
+    <meta charset="UTF-8" />
+    <title>HanKan Write</title>
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <script
+      type="module"
+      src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.js"
+    ></script>
+
+    <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico" />
+    <link rel="manifest" href="src/manifest.json" />
+    <link rel="stylesheet" href="src/css/style.css" />
+    <meta name="theme-color" content="#31d53d" />
+  </head>
+  <body>
+    <script src="https://unpkg.com/hanzi-writer@latest/dist/hanzi-writer.js"></script>
+
+    <!-- Settings Button -->
+    <div class="settings-container">
+        <button class="settings-btn" id="settingsToggle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <link rel="stylesheet" href="src/css/optionsbar.css" />
+    <!-- Settings Sidebar -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <div class="sidebar-header">
+            <h3>Settings</h3>
+            <button class="close-btn" id="closeSettings">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="setting-group">
+                <label for="themeSelect">Theme</label>
+                <select id="themeSelect">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">Auto</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <label for="fontSize">Font Size</label>
+                <input type="range" id="fontSize" min="12" max="24" value="16">
+            </div>
+            
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="showHints"> Show hints
+                </label>
+            </div>
+            
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="autoAdvance"> Auto-advance
+                </label>
+            </div>
+            
+            <div class="setting-group">
+                <button class="save-btn">Save Settings</button>
+                <button class="reset-btn">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+    <script src="src/js/settingsbar.js"></script>
+
+    <div id="info"> 
+      <div id="jpinfo" hidden>
+        <b>Kun: <span id="kun" style="font-weight: normal;"></span> On: <span id="on" style="font-weight: normal;"></span></b>
+      </div>
+      <div id="cninfo" hidden>
+        <b>Pinyin: <span id="pinyin" style="font-weight: normal;"></span></b>
+      </div>
+      <div>
+        <b>Meaning: <span id="meaning" style="font-weight: normal;"></span></b>
+      </div>
+    </div>
+
+    <div id="target">
+      <div id="overlay-container"> 
+        <svg id="grid-background-target"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 100"
+          width="100"
+          height="100">
+          <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+          <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+          <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+        </svg>
+        
+        <div id="writer-container" ></div> 
+      </div>    
+    </div>
+
+    <div class="controls" id="controls">      
+      <button id="back" onclick="next(0,-1,false)">Back</button>
+      <button id="hint" onclick="hint()">Hint</button>      
+      <button id="skip" onclick="next(0,1,false)">Skip</button>
+    </div>
+    
+    <div id="desc"> 
+      <p>Try writing the character above!</p>
+      <p>Current index: #<span id="indexInfo" style="font-weight: bold;"></span></p>
+      <p>Grade: <span id="grade"></span></p>
+      <!--<p><span style="font-weight: bold;">Radicals </span>are colored <span style="color: red; font-weight: bold;">red.</span></p>  Will be added later to settings-->
+    </div>
+
+    <link rel="stylesheet" href="src/css/kanjigrid.css" />
+    <div class="grid-box">
+    <div class="grid-header">
+        <h3>Character List</h3>
+        <div class="grid-controls">
+            <input type="text" placeholder="Search..." class="search-input">
+        </div>
+    </div>
+        <div class="kanji-grid">
+            <div class="kanji-item">一</div>
+            <div class="kanji-item">二</div>
+            <div class="kanji-item">三</div>
+            <div class="kanji-item">四</div>
+            <div class="kanji-item">五</div>
+            <div class="kanji-item">六</div>
+            <div class="kanji-item">七</div>
+            <div class="kanji-item">八</div>
+            <div class="kanji-item">九</div>
+            <div class="kanji-item">十</div>
+            <!-- Add more kanji items as needed -->
+        </div>
+    </div>
+
+    <script type="module" src="src/js/mainpage.js"></script>
+    <script src="src/js/cookie-popup.js" type="module"></script>
+  </body>
+</html>
