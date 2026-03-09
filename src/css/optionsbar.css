@@ -3,7 +3,7 @@
     position: fixed;
     top: 20px;
     left: 20px;
-    z-index: 100; /* Lower z-index */
+    z-index: 1003; /* Higher than kanji grid */
 }
 
 .settings-sidebar {
@@ -14,7 +14,7 @@
     height: 100vh;
     background: white;
     box-shadow: 2px 0 15px rgba(0,0,0,0.1);
-    z-index: 101; /* Lower z-index */
+    z-index: 1002; /* Higher than kanji grid */
     transition: left 0.3s ease;
 }
 
@@ -25,15 +25,367 @@
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
-    z-index: 99; /* Lower than sidebar but higher than main content */
+    z-index: 1001; /* Higher than kanji grid but lower than sidebar */
+    display: none;
+}
+
+/* Active states for showing the sidebar and overlay */
+.settings-sidebar.active {
+    left: 0;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* Hide settings button when sidebar is active */
+.settings-container.hidden {
     display: none;
 }
 
 .settings-btn {
-    background-color: transparent;
+    background-color: #f8f9fa;
     background-repeat: no-repeat;
-    border: none;
+    border: 2px solid #dee2e6;
     cursor: pointer;
     overflow: hidden;
     outline: none;
+    padding: 16px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn svg {
+    width: 28px;
+    height: 28px;
+    color: #495057;
+    transition: color 0.3s ease;
+}
+
+.settings-btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    transform: scale(1.05);
+}
+
+.settings-btn:hover svg {
+    color: #212529;
+}
+
+/* Sidebar header styling */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+    background-color: rgba(0,0,0,0.1);
+    color: #333;
+}
+
+/* Sidebar content styling */
+.sidebar-content {
+    padding: 20px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.setting-group select,
+.setting-group input[type="range"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.setting-group input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.save-btn,
+.reset-btn,
+.progress-btn {
+    padding: 10px 20px;
+    margin-right: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.save-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #0056b3;
+}
+
+.reset-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.reset-btn:hover {
+    background-color: #545b62;
+}
+
+.progress-btn {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+}
+
+.save-progress-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.save-progress-btn:hover {
+    background-color: #218838;
+}
+
+.delete-progress-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-progress-btn:hover {
+    background-color: #c82333;
+}
+
+.setting-group h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Theme styles */
+body.light-theme {
+    background-color: #f5f5f5;
+    color: #333333;
+}
+
+body.dark-theme {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-theme .settings-sidebar {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-theme .sidebar-header {
+    background-color: #3a3a3a;
+    border-bottom-color: #555;
+}
+
+body.dark-theme .sidebar-header h3 {
+    color: #e0e0e0;
+}
+
+body.dark-theme .setting-group label {
+    color: #e0e0e0;
+}
+
+body.dark-theme .setting-group h4 {
+    color: #e0e0e0;
+}
+
+body.dark-theme .setting-group select,
+body.dark-theme .setting-group input[type="range"] {
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-theme .search-input {
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-theme .grid-box {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-theme .grid-header h3 {
+    color: #e0e0e0;
+}
+
+body.dark-theme .kanji-item {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
+
+body.dark-theme .kanji-item:hover {
+    background: #4a4a4a;
+}
+
+body.dark-theme .kanji-grid {
+    background-color: #555;
+    border-color: #555;
+}
+
+/* Dark theme grid lines */
+body.dark-theme #grid-background-target line {
+    stroke: #555;
+}
+
+/* Dark theme writing area background */
+body.dark-theme #overlay-container {
+    background-color: #333;
+}
+
+/* Dark theme main content styling */
+body.dark-theme #info,
+body.dark-theme #desc {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-theme #info b {
+    color: #7fb3d3;
+}
+
+body.dark-theme #info span {
+    color: #e0e0e0;
+    background: #3a3a3a;
+    border-left-color: #4A90E2;
+}
+
+body.dark-theme #target {
+    border-color: #555;
+}
+
+/* Dark theme settings button */
+body.dark-theme .settings-btn {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+body.dark-theme .settings-btn svg {
+    color: #e0e0e0;
+}
+
+body.dark-theme .settings-btn:hover {
+    background-color: #4a4a4a;
+    border-color: #666;
+}
+
+body.dark-theme .settings-btn:hover svg {
+    color: #ffffff;
+}
+
+/* Dark theme for exercise grid */
+body.dark-theme .exercise-grid-box {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    border-color: #444;
+}
+
+body.dark-theme .exercise-header h3 {
+    color: #e0e0e0;
+}
+
+body.dark-theme .exercise-header {
+    border-bottom-color: #444;
+}
+
+body.dark-theme .jlpt-select,
+body.dark-theme .count-input {
+    background-color: #3a3a3a;
+    border-color: #555;
+    color: #e0e0e0;
+}
+
+body.dark-theme .start-btn {
+    background-color: #0056b3;
+}
+
+body.dark-theme .start-btn:hover {
+    background-color: #004494;
+}
+
+body.dark-theme .start-btn:disabled {
+    background-color: #555;
+}
+
+body.dark-theme .exercise-grid {
+    background-color: #333;
+    border-color: #555;
+}
+
+body.dark-theme .exercise-item {
+    background: #3a3a3a;
+    border-color: #555;
+    color: #e0e0e0;
+}
+
+body.dark-theme .exercise-item.current {
+    border-color: #4A90E2;
+    background-color: #1e3a5f;
+}
+
+body.dark-theme .exercise-item.completed {
+    border-color: #28a745;
+    background-color: #1e4d2b;
+}
+
+body.dark-theme .progress-bar {
+    background-color: #444;
+}
+
+body.dark-theme .progress-text {
+    color: #aaa;
 }

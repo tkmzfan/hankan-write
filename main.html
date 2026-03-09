@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="en" dir="ltr">
+  <!--Run npx vite to test-->
   <head>
     <base href="%BASE_URL%">
     <meta name="darkreader-lock">
     <meta charset="UTF-8" />
     <title>HanKan Write</title>
+    <script type="module" src="src/js/mainpage.js"></script>
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -30,6 +32,7 @@
     <script src="https://unpkg.com/hanzi-writer@latest/dist/hanzi-writer.js"></script>
 
     <!-- Settings Button -->
+    <script type="module" src="src/js/settingsbar.js"></script>
     <div class="settings-container">
         <button class="settings-btn" id="settingsToggle">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -75,8 +78,19 @@
             </div>
             
             <div class="setting-group">
-                <button class="save-btn">Save Settings</button>
-                <button class="reset-btn">Reset to Defaults</button>
+                <label>
+                    <input type="checkbox" id="soundEffects" checked> Sound effects
+                </label>
+            </div>            
+            <div class="setting-group">
+                <h4>Cookie Management</h4>
+                <button class="progress-btn save-progress-btn" id="saveProgress">Save Progress</button>
+                <button class="progress-btn delete-progress-btn" id="deleteProgress">Delete Progress</button>
+            </div>
+            
+            <div class="setting-group">
+                <button class="save-btn" id="saveSettingsBtn">Save Settings</button>
+                <button class="reset-btn" id="resetSettingsBtn">Reset to Defaults</button>
             </div>
         </div>
     </div>
@@ -97,60 +111,108 @@
       </div>
     </div>
 
-    <div id="target">
-      <div id="overlay-container"> 
-        <svg id="grid-background-target"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 100 100"
-          width="100"
-          height="100">
-          <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
-          <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
-          <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
-          <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
-        </svg>
-        
-        <div id="writer-container" ></div> 
-      </div>    
+    <div class="main-content">
+      <div id="target">
+        <div id="overlay-container"> 
+          <svg id="grid-background-target"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 100 100"
+            width="450"
+            height="450">
+            <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+            <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+            <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+            <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+          </svg>
+          
+          <div id="writer-container" ></div> 
+        </div>    
+      </div>
+
+      <div class="controls" id="controls">      
+        <button id="back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
+          </svg>
+          Back
+        </button>
+        <button id="hint">💡 Hint</button>      
+        <button id="next">
+          Next
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 11h12.17l-5.59-5.59L12 4l8 8-8 8-1.42-1.41L16.17 13H4v-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div id="desc"> 
+        <p>Current index: #<span id="indexInfo" style="font-weight: bold;"></span></p>
+        <p>Grade: <span id="grade"></span></p>
+        <!--<p><span style="font-weight: bold;">Radicals </span>are colored <span style="color: red; font-weight: bold;">red.</span></p>  Will be added later to settings-->
+      </div>
     </div>
 
-    <div class="controls" id="controls">      
-      <button id="back" onclick="next(0,-1,false)">Back</button>
-      <button id="hint" onclick="hint()">Hint</button>      
-      <button id="skip" onclick="next(0,1,false)">Skip</button>
-    </div>
-    
-    <div id="desc"> 
-      <p>Try writing the character above!</p>
-      <p>Current index: #<span id="indexInfo" style="font-weight: bold;"></span></p>
-      <p>Grade: <span id="grade"></span></p>
-      <!--<p><span style="font-weight: bold;">Radicals </span>are colored <span style="color: red; font-weight: bold;">red.</span></p>  Will be added later to settings-->
+    <div class="srs-stats">
+
     </div>
 
     <link rel="stylesheet" href="src/css/kanjigrid.css" />
-    <div class="grid-box">
-    <div class="grid-header">
-        <h3>Character List</h3>
-        <div class="grid-controls">
-            <input type="text" placeholder="Search..." class="search-input">
+    <!-- Character List Grid on Right -->
+    <!-- Exercise Grid on Left -->
+    <div class="exercise-box">
+      <div class="exercise-grid-box" id="exerciseGridBox">
+        <div class="exercise-header">
+            <h3>Exercise Session</h3>
+            <div class="exercise-controls">
+                <select id="jlptLevel" class="jlpt-select">
+                    <option value="5">JLPT N5</option>
+                    <option value="4">JLPT N4</option>
+                    <option value="3">JLPT N3</option>
+                    <option value="2">JLPT N2</option>
+                    <option value="1">JLPT N1</option>
+                </select>
+                <input type="number" id="exerciseCount" min="5" max="50" value="10" class="count-input">
+                <button id="startExercise" class="start-btn">Start</button>
+            </div>
         </div>
-    </div>
-        <div class="kanji-grid">
-            <div class="kanji-item">一</div>
-            <div class="kanji-item">二</div>
-            <div class="kanji-item">三</div>
-            <div class="kanji-item">四</div>
-            <div class="kanji-item">五</div>
-            <div class="kanji-item">六</div>
-            <div class="kanji-item">七</div>
-            <div class="kanji-item">八</div>
-            <div class="kanji-item">九</div>
-            <div class="kanji-item">十</div>
-            <!-- Add more kanji items as needed -->
+        <div class="exercise-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="progress-text" id="progressText">0/0</span>
         </div>
+        <div class="exercise-grid" id="exercise-grid"></div>
+      </div>
     </div>
 
-    <script type="module" src="src/js/mainpage.js"></script>
+    <link rel="stylesheet" href="src/css/kanjigrid.css" />
+      <div class="grid-box" id="gridBox">
+        <button class="grid-toggle" id="gridToggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
+        <div class="grid-header">
+            <h3>Character List</h3>
+            <div class="grid-controls">
+                <input type="text" placeholder="Search..." class="search-input">
+            </div>
+        </div>
+        <div class="kanji-grid" id="kanji-grid"></div>
+      </div>
+    </div>
+
     <script src="src/js/cookie-popup.js" type="module"></script>
+    
+    <!-- Sound Effects -->
+    <audio id="completionSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAl=" type="audio/wav">
+    </audio>
+    <audio id="mistakeSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRu4CAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YcoCAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAlBovPxyWEcDyfB6dmfSQ8HaMLr6KxKEglBp+DquVQaB2K99Ny2ayAHcLfk7KBAHwg2TV9fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAlBovPxyWEcDyfB6dmfSQ8HaMLr6KxKEglBp+DquVQaB2K99Ny2ayAHcLfk7KBAHwg2TV9fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAlBovPxyWEcDyfB6dmfSQ8HaMLr6KxKEglBp+DquVQaB2K99Ny2ayAHcLfk7KBAHwg2" type="audio/wav">
+    </audio>
+    <audio id="sessionCompleteSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRu4CAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YcoCAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAlBovPxyWEcDyfB6dmfSQ8HaMLr6KxKEglBp+DquVQaB2K99Ny2ayAHcLfk7KBAHwg2TV9fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAlBovPxyWEcDyfB6dmfSQ8HaMLr6KxKEglBp+DquVQaB2K99Ny2ayAHcLfk7KBAHwg2TV9fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoYXrPs7KNOFAlBovPxyWEcDyfB6dmfSQ8HaMLr6KxKEglBp+DquVQaB2K99Ny2ayAHcLfk7KBAHwg2" type="audio/wav">
+    </audio>
   </body>
 </html>
