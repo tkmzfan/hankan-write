@@ -33,6 +33,7 @@
 
     <!-- Settings Button -->
     <script type="module" src="src/js/settingsbar.js"></script>
+    <script type="module" src="src/js/drag-resize-panel.js"></script>
     <div class="settings-container">
         <button class="settings-btn" id="settingsToggle">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -61,6 +62,15 @@
             </div>
             
             <div class="setting-group">
+                <label for="languageSelect">Language</label>
+                <select id="languageSelect">
+                    <option value="jp">Japanese</option>
+                    <option value="simp">Chinese (Simplified)</option>
+                    <option value="trad">Chinese (Traditional)</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
                 <label for="fontSize">Font Size</label>
                 <input type="range" id="fontSize" min="12" max="24" value="16">
             </div>
@@ -84,12 +94,10 @@
             </div>            
             <div class="setting-group">
                 <h4>Cookie Management</h4>
-                <button class="progress-btn save-progress-btn" id="saveProgress">Save Progress</button>
                 <button class="progress-btn delete-progress-btn" id="deleteProgress">Delete Progress</button>
             </div>
             
             <div class="setting-group">
-                <button class="save-btn" id="saveSettingsBtn">Save Settings</button>
                 <button class="reset-btn" id="resetSettingsBtn">Reset to Defaults</button>
             </div>
         </div>
@@ -148,6 +156,16 @@
       <div id="desc"> 
         <p>Current index: #<span id="indexInfo" style="font-weight: bold;"></span></p>
         <p>Grade: <span id="grade"></span></p>
+        <p>
+          <span id="japanese-dictionaries" style="display: none;">
+            <a href="#" id="jisho-link" target="_blank" rel="noopener noreferrer">Jisho</a> | 
+            <a href="#" id="jpdb-link" target="_blank" rel="noopener noreferrer">jpdb</a>
+          </span>
+          <span id="chinese-dictionaries" style="display: none;">
+            <a href="#" id="mdbg-link" target="_blank" rel="noopener noreferrer">MDBG</a> | 
+            <a href="#" id="naver-link" target="_blank" rel="noopener noreferrer">Naver</a>
+          </span>
+        </p>
         <!--<p><span style="font-weight: bold;">Radicals </span>are colored <span style="color: red; font-weight: bold;">red.</span></p>  Will be added later to settings-->
       </div>
     </div>
@@ -162,9 +180,23 @@
     <div class="exercise-box">
       <div class="exercise-grid-box" id="exerciseGridBox">
         <div class="exercise-header">
-            <h3>Exercise Session</h3>
+            <h3>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; opacity: 0.6;">
+                    <circle cx="9" cy="12" r="1"></circle>
+                    <circle cx="9" cy="5" r="1"></circle>
+                    <circle cx="9" cy="19" r="1"></circle>
+                    <circle cx="15" cy="12" r="1"></circle>
+                    <circle cx="15" cy="5" r="1"></circle>
+                    <circle cx="15" cy="19" r="1"></circle>
+                </svg>
+                Exercise Session
+            </h3>
             <div class="exercise-controls">
-                <select id="jlptLevel" class="jlpt-select">
+                <select id="exerciseMode" class="mode-select">
+                    <option value="normal">Normal Mode</option>
+                    <option value="timed">Timed Mode</option>
+                </select>
+                <select id="gradeLevel" class="grade-select">
                     <option value="5">JLPT N5</option>
                     <option value="4">JLPT N4</option>
                     <option value="3">JLPT N3</option>
@@ -172,7 +204,22 @@
                     <option value="1">JLPT N1</option>
                 </select>
                 <input type="number" id="exerciseCount" min="5" max="50" value="10" class="count-input">
+                <div class="timed-settings" id="timedSettings" style="display: none;">
+                    <input type="number" id="timePerCharacter" min="3" max="30" value="5" class="time-input">
+                    <span class="time-label">sec per char</span>
+                </div>
                 <button id="startExercise" class="start-btn">Start</button>
+            </div>
+            <div class="timer-display" id="timerDisplay" style="display: none;">
+                <div class="timer-circle">
+                    <svg class="timer-svg" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="18" fill="none" stroke="#e9ecef" stroke-width="4"></circle>
+                        <circle id="timerProgress" cx="20" cy="20" r="18" fill="none" stroke="#007bff" stroke-width="4" 
+                                stroke-dasharray="113.1" stroke-dashoffset="113.1" stroke-linecap="round" 
+                                transform="rotate(-90 20 20)"></circle>
+                    </svg>
+                    <span class="timer-text" id="timerText">5</span>
+                </div>
             </div>
         </div>
         <div class="exercise-progress">

@@ -5,6 +5,7 @@ const closeSettings = document.getElementById('closeSettings');
 const overlay = document.getElementById('overlay');
 const settingsContainer = document.querySelector('.settings-container');
 const themeSelect = document.getElementById('themeSelect');
+const languageSelect = document.getElementById('languageSelect');
 
 // Open settings
 settingsToggle.addEventListener('click', () => {
@@ -81,49 +82,138 @@ themeSelect.addEventListener('change', (e) => {
     applyTheme(e.target.value);
 });
 
-// Load theme when page loads
-document.addEventListener('DOMContentLoaded', loadTheme);
-
-// Save progress function
-function saveProgress() {
-    const consent = localStorage.getItem("cookieConsent");
+// Language functionality
+function applyLanguage(language) {
+    console.log('Changing language to:', language);
     
-    if (consent === "accepted") {
-        // Save the current progress
-        localStorage.setItem("currentIndex", currentIndex);
-        localStorage.setItem("targetLang", _targetLang);
-        
-        // Show success message
-        alert("Progress saved successfully!");
-        console.log("Progress saved: currentIndex =", currentIndex, ", targetLang =", _targetLang);
-    } else {
-        // Show error message and offer to accept cookies
-        const acceptCookies = confirm(
-            "Cookies have not been accepted. Progress cannot be saved without cookie consent.\n\n" +
-            "Would you like to accept cookies now to enable progress saving?"
-        );
-        
-        if (acceptCookies) {
-            // Show the cookie consent popup again
-            const cookiePopup = document.getElementById("cookie-popup");
-            if (cookiePopup) {
-                cookiePopup.style.display = "block";
-            }
+    // Show loading cursor
+    document.body.style.cursor = 'wait';
+    
+    // Check if exercise session is active and end it
+    if (window.exerciseSession && window.exerciseSession.active) {
+        console.log('Ending active exercise session before changing language');
+        if (typeof window.endExercise === 'function') {
+            window.endExercise();
         }
+    }
+    
+    // Reset to index 0 when changing language
+    window.currentIndex = 0;
+    
+    // Save language preference
+    const consent = localStorage.getItem("cookieConsent");
+    if (consent === "accepted") {
+        localStorage.setItem('selectedLanguage', language);
+        localStorage.setItem('currentIndex', '0'); // Save the reset index
+    }
+    
+    // Call setLang function from mainpage.js
+    if (typeof window.setLang === 'function') {
+        window.setLang(language).then(() => {
+            console.log('Language changed successfully');
+            
+            // Update grade dropdown options
+            if (typeof window.updateGradeDropdown === 'function') {
+                window.updateGradeDropdown();
+                console.log('Grade dropdown updated');
+            }
+            
+            // Clear and repopulate character list
+            const grid = document.getElementById("kanji-grid");
+            if (grid && typeof window.populateList === 'function') {
+                grid.innerHTML = "";
+                window.populateList(0, 100);
+                console.log('Character list updated');
+            }
+            
+            // Set to first character (index 0)
+            if (typeof window.setHanzi === 'function' && window.hanziList && window.hanziList.length > 0) {
+                window.setHanzi(window.hanziList[0]);
+                console.log('Reset to first character');
+            }
+            
+            // Hide loading cursor
+            document.body.style.cursor = 'default';
+        }).catch(error => {
+            console.error('Failed to change language:', error);
+            // Hide loading cursor even on error
+            document.body.style.cursor = 'default';
+        });
+    } else {
+        console.warn('setLang function not available - waiting for mainpage.js to load');
+        // Retry after a short delay
+        setTimeout(() => {
+            if (typeof window.setLang === 'function') {
+                applyLanguage(language);
+            } else {
+                console.error('setLang function still not available');
+                // Hide loading cursor if we give up
+                document.body.style.cursor = 'default';
+            }
+        }, 500);
     }
 }
 
-// Progress button event listeners
-document.getElementById('saveProgress').addEventListener('click', saveProgress);
+// Load saved language on page load
+function loadLanguage() {
+    const savedLanguage = localStorage.getItem('selectedLanguage') || 'jp';
+    console.log("Loading language:", savedLanguage);
+    languageSelect.value = savedLanguage;
+    // Don't auto-apply on load to avoid conflicts with URL parameters
+}
 
+// Function to update language dropdown state
+function updateLanguageDropdownState() {
+    const isExerciseActive = window.exerciseSession && window.exerciseSession.active;
+    languageSelect.disabled = isExerciseActive;
+    
+    if (isExerciseActive) {
+        languageSelect.title = "Language cannot be changed during an exercise session";
+    } else {
+        languageSelect.title = "";
+    }
+}
+
+// Language change event listener
+languageSelect.addEventListener('change', (e) => {
+    console.log('Language dropdown changed to:', e.target.value);
+    
+    // Disable the dropdown during language change
+    languageSelect.disabled = true;
+    
+    applyLanguage(e.target.value);
+    
+    // Re-enable dropdown after a delay to allow language change to complete
+    setTimeout(() => {
+        updateLanguageDropdownState(); // This will re-enable unless exercise is active
+    }, 2000);
+});
+
+// Periodically check exercise session state to update dropdown
+setInterval(updateLanguageDropdownState, 500);
+
+// Load theme and language when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing settings...');
+    loadTheme();
+    loadLanguage();
+    
+    // Double-check language dropdown binding
+    const langSelect = document.getElementById('languageSelect');
+    if (langSelect) {
+        console.log('Language dropdown found and bound');
+    } else {
+        console.error('Language dropdown not found!');
+    }
+    
+    // Initial dropdown state update
+    updateLanguageDropdownState();
+});
+
+// Progress button event listeners
 document.getElementById('deleteProgress').addEventListener('click', () => {
     console.log('Delete Progress clicked - functionality to be implemented');
     // TODO: Add delete progress functionality
-});
-
-document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-    console.log('Save Settings clicked - functionality to be implemented');
-    // TODO: Add save settings functionality
 });
 
 document.getElementById('resetSettingsBtn').addEventListener('click', () => {

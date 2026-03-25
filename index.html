@@ -5,6 +5,14 @@
     <meta name="darkreader-lock">
     <meta charset="UTF-8" />
     <title>HanKan Write</title>
+    <script>
+      // Redirect to main.html with language parameter
+      function startQuiz() {
+        var lang = document.getElementById("lang").value;
+        const basePath = document.baseURI.replace(/\/$/, '');
+        window.location.href = `${basePath}/main.html?lang=${lang}`;
+      }
+    </script>
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -34,13 +42,6 @@
         <option value="simp">Simplified Chinese</option>
       </select>
       <button onclick="startQuiz()">Start Quiz</button>
-    
-    <script>
-        function startQuiz() {
-            var lang = document.getElementById("lang").value;
-            window.location.href = `main.html?&lang=${lang}`;
-        }
-    </script>
     </div>
 
     <script>

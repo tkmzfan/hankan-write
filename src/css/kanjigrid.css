@@ -100,15 +100,15 @@
     width: 150px;
 }
 
-/* Exercise Grid Styles (Floating Center-Left) */
+/* Exercise Grid Styles (Draggable & Resizable) */
 .exercise-grid-box {
     position: fixed;
-    left: 2%;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 20px;
+    top: 20px;
     width: 280px;
-    height: 60vh;
-    max-height: 500px;
+    height: 400px;
+    min-width: 200px;
+    min-height: 150px;
     background: white;
     padding: 16px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -117,6 +117,16 @@
     display: flex;
     flex-direction: column;
     border: 1px solid #e0e0e0;
+    transition: box-shadow 0.2s ease;
+}
+
+.exercise-grid-box:hover {
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+}
+
+.exercise-grid-box.dragging {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    transform: rotate(1deg);
 }
 
 .exercise-grid {
@@ -192,11 +202,26 @@
     gap: 6px;
 }
 
-.jlpt-select, .count-input {
+.mode-select, .grade-select, .count-input, .time-input {
     padding: 5px 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 12px;
+}
+
+.timed-settings {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.time-input {
+    width: 50px;
+}
+
+.time-label {
+    font-size: 11px;
+    color: #6c757d;
 }
 
 .start-btn {
@@ -245,4 +270,70 @@
     font-size: 11px;
     color: #6c757d;
     min-width: 35px;
+}
+
+/* Timer Display Styles */
+.timer-display {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.timer-circle {
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+.timer-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.timer-circle.warning .timer-text {
+    color: #ffc107;
+}
+
+.timer-circle.danger .timer-text {
+    color: #dc3545;
+}
+
+.timer-circle.warning #timerProgress {
+    stroke: #ffc107;
+}
+
+.timer-circle.danger #timerProgress {
+    stroke: #dc3545;
+}
+
+/* Resize Handle Styles */
+.resize-handle {
+    background-color: rgba(0, 123, 255, 0.3);
+    border: 1px solid #007bff;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.resize-handle:hover {
+    background-color: rgba(0, 123, 255, 0.5);
+    border-color: #0056b3;
+}
+
+/* Exercise Panel Visual States */
+.exercise-grid-box.dragging .exercise-header h3 {
+    color: #007bff;
+}
+
+.exercise-grid-box.resizing {
+    box-shadow: 0 8px 30px rgba(0,123,255,0.2);
 }

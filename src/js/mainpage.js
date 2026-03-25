@@ -1,3 +1,13 @@
+import { SoundEffects } from './sound-effects.js';
+import { 
+    exerciseSession, 
+    initializeExercisePanel, 
+    startExercise, 
+    endExercise, 
+    completeCurrentExercise, 
+    handleExerciseNavigation 
+} from './exercise-session.js';
+
 const consent = localStorage.getItem("cookieConsent");
 if(consent == "accepted" && localStorage.getItem("currentIndex")) {
     currentIndex = parseInt(localStorage.getItem("currentIndex"), 10);
@@ -6,7 +16,6 @@ if(consent == "accepted" && localStorage.getItem("targetLang")) {
     _targetLang = localStorage.getItem("targetLang");
 }
 
-var radicalColored = false;
 var currentStroke = 0;
 var currentIndex = 0; 
 
@@ -14,122 +23,6 @@ var hanziList = null;
 var hanziData = null;
 
 var _targetLang = null;
-
-// Exercise Session Variables
-var exerciseSession = {
-    active: false,
-    kanjiList: [],
-    currentExerciseIndex: 0,
-    completed: new Set(),
-    originalIndex: 0,
-    originalHanziList: null
-};
-
-// Sound Effects System
-class SoundEffects {
-    constructor() {
-        this.enabled = true;
-        this.completionSound = document.getElementById('completionSound');
-        this.mistakeSound = document.getElementById('mistakeSound');
-        this.sessionCompleteSound = document.getElementById('sessionCompleteSound');
-        
-        // Create synthetic tones if audio elements fail
-        this.audioContext = null;
-        this.initAudioContext();
-    }
-    
-    initAudioContext() {
-        try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.warn('Web Audio API not supported');
-        }
-    }
-    
-    playTone(frequency, duration, type = 'sine') {
-        if (!this.audioContext) return;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-        oscillator.type = type;
-        
-        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + duration);
-    }
-    
-    playCompletion() {
-        if (!this.enabled) return;
-        
-        if (this.completionSound && this.completionSound.readyState >= 2) {
-            this.completionSound.currentTime = 0;
-            this.completionSound.play().catch(() => {
-                // Fallback to synthetic tone
-                this.playTone(523.25, 0.2); // C5 note
-            });
-        } else {
-            // Fallback: pleasant ascending tone
-            this.playTone(523.25, 0.15);
-            setTimeout(() => this.playTone(659.25, 0.15), 100);
-        }
-    }
-    
-    playMistake() {
-        if (!this.enabled) return;
-        
-        if (this.mistakeSound && this.mistakeSound.readyState >= 2) {
-            this.mistakeSound.currentTime = 0;
-            this.mistakeSound.play().catch(() => {
-                // Fallback to synthetic tone
-                this.playTone(220, 0.3, 'sawtooth'); // A3 note, harsh sound
-            });
-        } else {
-            // Fallback: descending error tone
-            this.playTone(220, 0.2, 'sawtooth');
-            setTimeout(() => this.playTone(196, 0.2, 'sawtooth'), 150);
-        }
-    }
-    
-    playSessionComplete() {
-        if (!this.enabled) return;
-        
-        if (this.sessionCompleteSound && this.sessionCompleteSound.readyState >= 2) {
-            this.sessionCompleteSound.currentTime = 0;
-            this.sessionCompleteSound.play().catch(() => {
-                // Fallback to synthetic melody
-                this.playCompletionMelody();
-            });
-        } else {
-            this.playCompletionMelody();
-        }
-    }
-    
-    playHint() {
-        if (!this.enabled) return;
-        
-        // Subtle hint sound - soft bell-like tone
-        this.playTone(880, 0.1, 'sine'); // A5 note, very brief
-    }
-    
-    playHint() {
-        if (!this.enabled) return;
-        
-        // Subtle hint sound - soft bell-like tone
-        this.playTone(880, 0.1, 'sine'); // A5 note, very brief
-    }
-    
-    toggle() {
-        this.enabled = !this.enabled;
-        return this.enabled;
-    }
-}
 
 // Initialize sound effects
 const soundEffects = new SoundEffects();
@@ -183,6 +76,8 @@ setTimeout(updateWriterColors, 100);
 const urlParams = new URLSearchParams(window.location.search);
 try {
     await setLang(urlParams.get('lang'));
+    // Update grade dropdown after language is loaded
+    updateGradeDropdown();
     startQuiz();
 } catch (error) {
     console.error('Failed to initialize application:', error);
@@ -210,20 +105,10 @@ if (currentIndex < 0 || currentIndex >= hanziList.length) {
     currentIndex = 0;
 }
 
-console.log(hanziList[0]);
 setHanzi(hanziList[currentIndex]);
 
 writer.showOutline();
-
-if(radicalColored)
-        writer.updateColor('radicalColor', '#D00')
-
-writer.animateCharacter({
-    onComplete: function() {
-    writer.updateColor('radicalColor', '#000')
-    quizOn();
-    }
-});
+quizOn()
 
 populateList(0,100);
 }
@@ -239,9 +124,6 @@ writer.quiz({
         // Play completion sound
         soundEffects.playCompletion();
         
-        if(radicalColored)
-        writer.updateColor('radicalColor', '#D00')
-
         next(2000,1,true)
     },
     onCorrectStroke: function(data) {
@@ -261,7 +143,12 @@ async function next(delayTime, increment, done) {
         if (done) {
             completeCurrentExercise();
         } else {
-            incrementOriginal(increment);
+            // Use the exercise navigation handler
+            if (!handleExerciseNavigation(increment)) {
+                // Fall back to normal navigation if not in exercise
+                currentIndex += Number(increment);
+                setHanzi(hanziList[currentIndex]);
+            }
         }
     } else {
         // Normal navigation
@@ -325,6 +212,13 @@ gridToggle.addEventListener("click", () => {
 
 // Exercise start button
 document.getElementById('startExercise').addEventListener('click', startExercise);
+
+// Try to initialize exercise panel immediately, or wait for DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeExercisePanel);
+} else {
+    initializeExercisePanel();
+}
 function setHanzi(hanzi) {
 writer.setCharacter(hanzi);
 
@@ -339,23 +233,70 @@ if(consent == "accepted") {
 }
 
 console.log(currentIndex);
+
+// Check if hanziData is loaded before accessing it
+if (!hanziData || hanziData.length === 0) {
+    console.warn('hanziData not loaded yet, skipping description update');
+    document.getElementById("indexInfo").textContent = currentIndex;
+    return;
+}
+
 var currentHanziData = hanziData[currentIndex];
 
 switch(_targetLang) {
 case "jp":
-    console.log(currentHanziData);
-    document.getElementById('kun').textContent = currentHanziData.wk_readings_kun;
-    document.getElementById('on').textContent = currentHanziData.wk_readings_on;
-    document.getElementById('meaning').textContent = currentHanziData.wk_meanings;
-    document.getElementById('grade').textContent = "JLPT N" + currentHanziData.jlpt_new;
+    // Check if currentHanziData exists for Japanese
+    if (!currentHanziData) {
+        console.warn(`No data found for kanji at index: ${currentIndex}`);
+        document.getElementById('kun').textContent = '';
+        document.getElementById('on').textContent = '';
+        document.getElementById('meaning').textContent = '';
+        document.getElementById('grade').textContent = 'JLPT N';
+    } else {
+        console.log(currentHanziData);
+        document.getElementById('kun').textContent = currentHanziData.wk_readings_kun || '';
+        document.getElementById('on').textContent = currentHanziData.wk_readings_on || '';
+        document.getElementById('meaning').textContent = currentHanziData.wk_meanings || '';
+        document.getElementById('grade').textContent = "JLPT N" + (currentHanziData.jlpt_new || '');
+    }
+    
+    // Show Japanese dictionaries and hide Chinese ones
+    document.getElementById('japanese-dictionaries').style.display = 'inline';
+    document.getElementById('chinese-dictionaries').style.display = 'none';
+    
+    // Update dictionary links for Japanese
+    const currentKanji = hanziList[currentIndex];
+    if (currentKanji) {
+        document.getElementById('jisho-link').href = `https://jisho.org/search/${encodeURIComponent(currentKanji)}`;
+        document.getElementById('jpdb-link').href = `https://jpdb.io/search?q=${encodeURIComponent(currentKanji)}`;
+    }
     break;
 case "trad":
 case "simp":
+    // For Chinese, hanziData is keyed by character, not index
     currentHanziData = hanziData[hanzi];
-    console.log(currentHanziData);
-    document.getElementById('pinyin').textContent = currentHanziData.pinyin;
-    document.getElementById('meaning').textContent = currentHanziData.meaning;
-    document.getElementById('grade').textContent = "HSK ";
+    if (!currentHanziData) {
+        console.warn(`No data found for character: ${hanzi}`);
+        document.getElementById('pinyin').textContent = '';
+        document.getElementById('meaning').textContent = '';
+        document.getElementById('grade').textContent = 'HSK ';
+    } else {
+        console.log(currentHanziData);
+        document.getElementById('pinyin').textContent = currentHanziData.pinyin || '';
+        document.getElementById('meaning').textContent = currentHanziData.meaning || '';
+        document.getElementById('grade').textContent = "HSK " + (currentHanziData.hsk || '');
+    }
+    
+    // Show Chinese dictionaries and hide Japanese ones
+    document.getElementById('chinese-dictionaries').style.display = 'inline';
+    document.getElementById('japanese-dictionaries').style.display = 'none';
+    
+    // Update dictionary links for Chinese
+    const currentHanzi = hanzi;
+    if (currentHanzi) {
+        document.getElementById('mdbg-link').href = `https://www.mdbg.net/chinese/dictionary?page=worddict&wdrst=0&wdqb=${encodeURIComponent(currentHanzi)}`;
+        document.getElementById('naver-link').href = `https://dict.naver.com/linedict/zhendict/dict.html#/cnen/search?query=${encodeURIComponent(currentHanzi)}`;
+    }
     break;
 }
 document.getElementById("indexInfo").textContent = currentIndex;
@@ -431,6 +372,94 @@ async function setLang(targetLang) {
     });
 }
 
+// Make functions globally accessible for settings
+window.setLang = setLang;
+window.exerciseSession = exerciseSession;
+window.endExercise = endExercise;
+window.populateList = populateList;
+window.setHanzi = setHanzi;
+window.updateGradeDropdown = updateGradeDropdown;
+window.hanziList = null;
+window.currentIndex = 0;
+window._targetLang = null;
+
+// Helper functions for module communication
+window.getMainData = function() {
+    return {
+        hanziData,
+        hanziList,
+        _targetLang,
+        currentIndex,
+        setHanzi,
+        startQuiz,
+        quizOn
+    };
+};
+
+window.getSoundEffects = function() {
+    return soundEffects;
+};
+
+window.updateCurrentIndex = function(newIndex) {
+    currentIndex = newIndex;
+};
+
+// Update global references when they change
+setInterval(() => {
+    window.hanziList = hanziList;
+    window.currentIndex = currentIndex;
+    window._targetLang = _targetLang;
+}, 100);
+
+// Update currentIndex when it changes globally
+setInterval(() => {
+    if (window.currentIndex !== undefined && window.currentIndex !== currentIndex) {
+        currentIndex = window.currentIndex;
+    }
+}, 100);
+
+// Function to update grade dropdown based on language
+function updateGradeDropdown() {
+    const gradeSelect = document.getElementById('gradeLevel');
+    if (!gradeSelect) return;
+    
+    const currentValue = gradeSelect.value;
+    gradeSelect.innerHTML = '';
+    
+    switch(_targetLang) {
+        case 'jp':
+            // JLPT levels (N5 to N1)
+            gradeSelect.innerHTML = `
+                <option value="5">JLPT N5</option>
+                <option value="4">JLPT N4</option>
+                <option value="3">JLPT N3</option>
+                <option value="2">JLPT N2</option>
+                <option value="1">JLPT N1</option>
+            `;
+            break;
+            
+        case 'trad':
+        case 'simp':
+            // HSK levels (1 to 6)
+            gradeSelect.innerHTML = `
+                <option value="1">HSK 1</option>
+                <option value="2">HSK 2</option>
+                <option value="3">HSK 3</option>
+                <option value="4">HSK 4</option>
+                <option value="5">HSK 5</option>
+                <option value="6">HSK 6</option>
+            `;
+            break;
+            
+        default:
+            gradeSelect.innerHTML = '<option value="">No grades available</option>';
+    }
+    
+    // Try to maintain the same value if it exists in the new options
+    const options = Array.from(gradeSelect.options).map(opt => opt.value);
+    gradeSelect.value = options.includes(currentValue) ? currentValue : gradeSelect.firstElementChild?.value || '';
+}
+
 function populateList(from, to) {
     const grid = document.getElementById("kanji-grid");
 
@@ -474,215 +503,4 @@ function populateList(from, to) {
         
         grid.appendChild(item);
     }
-}
-
-// Exercise Session Functions
-function startExercise() {
-    const jlptLevel = document.getElementById('jlptLevel').value;
-    const exerciseCount = parseInt(document.getElementById('exerciseCount').value);
-    
-    if (_targetLang !== "jp") {
-        alert("Exercise sessions are currently only available for Japanese (JLPT) characters.");
-        return;
-    }
-    
-    if (!hanziData || hanziData.length === 0) {
-        alert("Character data not loaded. Please wait for data to load before starting an exercise.");
-        return;
-    }
-    
-    // Filter kanji by JLPT level
-    const filteredKanji = [];
-    for (let i = 0; i < hanziData.length; i++) {
-        const kanjiInfo = hanziData[i];
-        if (kanjiInfo && kanjiInfo.jlpt_new == jlptLevel) {
-            filteredKanji.push({
-                character: hanziList[i],
-                index: i,
-                data: kanjiInfo
-            });
-        }
-    }
-    
-    if (filteredKanji.length === 0) {
-        alert(`No characters found for JLPT N${jlptLevel}`);
-        return;
-    }
-    
-    if (filteredKanji.length < exerciseCount) {
-        alert(`Only ${filteredKanji.length} characters available for JLPT N${jlptLevel}. Adjusting count.`);
-    }
-    
-    // Randomly select kanji for the exercise
-    const shuffled = [...filteredKanji].sort(() => Math.random() - 0.5);
-    const selectedKanji = shuffled.slice(0, Math.min(exerciseCount, filteredKanji.length));
-    
-    // Initialize exercise session
-    exerciseSession.active = true;
-    exerciseSession.kanjiList = selectedKanji;
-    exerciseSession.currentExerciseIndex = 0;
-    exerciseSession.completed = new Set();
-    exerciseSession.originalIndex = currentIndex;
-    exerciseSession.originalHanziList = hanziList;
-    
-    // Switch to the first exercise character
-    currentIndex = selectedKanji[0].index;
-    setHanzi(selectedKanji[0].character);
-    
-    populateExerciseGrid();
-    updateExerciseProgress();
-    
-    // Update UI
-    document.getElementById('startExercise').disabled = true;
-    console.log(`Started exercise with ${selectedKanji.length} JLPT N${jlptLevel} characters`);
-}
-
-function populateExerciseGrid() {
-    const grid = document.getElementById("exercise-grid");
-    grid.innerHTML = "";
-    
-    exerciseSession.kanjiList.forEach((kanjiInfo, index) => {
-        const item = document.createElement("div");
-        item.className = "exercise-item";
-        item.textContent = kanjiInfo.character;
-        
-        // Mark current character
-        if (index === exerciseSession.currentExerciseIndex) {
-            item.classList.add("current");
-        }
-        
-        // Mark completed characters
-        if (exerciseSession.completed.has(index)) {
-            item.classList.add("completed");
-        }
-        
-        // Add click functionality to jump to character
-        item.addEventListener("click", () => {
-            exerciseSession.currentExerciseIndex = index;
-            currentIndex = kanjiInfo.index;
-            setHanzi(kanjiInfo.character);
-            updateExerciseGrid();
-            quizOn();
-        });
-        
-        // Add tooltip with readings
-        const jpData = kanjiInfo.data;
-        const kun = jpData.wk_readings_kun || "";
-        const on = jpData.wk_readings_on || "";
-        const tooltipText = `Kun: ${kun}${kun && on ? ", " : ""}On: ${on}`;
-        item.title = tooltipText;
-        
-        grid.appendChild(item);
-    });
-}
-
-function updateExerciseGrid() {
-    const items = document.querySelectorAll('.exercise-item');
-    items.forEach((item, index) => {
-        item.classList.remove('current');
-        if (index === exerciseSession.currentExerciseIndex) {
-            item.classList.add('current');
-        }
-    });
-}
-
-function updateExerciseProgress() {
-    const completed = exerciseSession.completed.size;
-    const total = exerciseSession.kanjiList.length;
-    const percentage = total > 0 ? (completed / total) * 100 : 0;
-    
-    document.getElementById('progressFill').style.width = percentage + '%';
-    document.getElementById('progressText').textContent = `${completed}/${total}`;
-}
-
-function completeCurrentExercise() {
-    if (!exerciseSession.active) return;
-    
-    exerciseSession.completed.add(exerciseSession.currentExerciseIndex);
-    updateExerciseProgress();
-    updateExerciseGrid();
-    
-    // Check if exercise is complete
-    if (exerciseSession.completed.size === exerciseSession.kanjiList.length) {
-        // Play session completion sound
-        soundEffects.playSessionComplete();
-        
-        alert("Exercise completed! Great work!");
-        endExercise();
-        return;
-    }
-    
-    // Move to next unfinished character
-    moveToNextExerciseCharacter();
-}
-
-function moveToNextExerciseCharacter() {
-    if (!exerciseSession.active) return;
-    
-    // Find next incomplete character
-    let nextIndex = (exerciseSession.currentExerciseIndex + 1) % exerciseSession.kanjiList.length;
-    
-    // Look for an incomplete character
-    let attempts = 0;
-    while (exerciseSession.completed.has(nextIndex) && attempts < exerciseSession.kanjiList.length) {
-        nextIndex = (nextIndex + 1) % exerciseSession.kanjiList.length;
-        attempts++;
-    }
-    
-    if (!exerciseSession.completed.has(nextIndex)) {
-        exerciseSession.currentExerciseIndex = nextIndex;
-        const kanjiInfo = exerciseSession.kanjiList[nextIndex];
-        currentIndex = kanjiInfo.index;
-        setHanzi(kanjiInfo.character);
-        updateExerciseGrid();
-    }
-}
-
-function endExercise() {
-    exerciseSession.active = false;
-    
-    // Restore original state
-    currentIndex = exerciseSession.originalIndex;
-    
-    // Clear exercise grid
-    document.getElementById("exercise-grid").innerHTML = "";
-    document.getElementById('progressFill').style.width = '0%';
-    document.getElementById('progressText').textContent = '0/0';
-    
-    // Re-enable start button
-    document.getElementById('startExercise').disabled = false;
-    
-    // Set back to original character
-    setHanzi(hanziList[currentIndex]);
-}
-
-// Modified navigation functions to work with exercise
-function incrementOriginal(increment) {
-    if (exerciseSession.active) {
-        // In exercise mode, navigate within exercise
-        if (increment > 0) {
-            moveToNextExerciseCharacter();
-        } else {
-            // Move to previous incomplete character
-            let prevIndex = (exerciseSession.currentExerciseIndex - 1 + exerciseSession.kanjiList.length) % exerciseSession.kanjiList.length;
-            let attempts = 0;
-            while (exerciseSession.completed.has(prevIndex) && attempts < exerciseSession.kanjiList.length) {
-                prevIndex = (prevIndex - 1 + exerciseSession.kanjiList.length) % exerciseSession.kanjiList.length;
-                attempts++;
-            }
-            
-            if (!exerciseSession.completed.has(prevIndex)) {
-                exerciseSession.currentExerciseIndex = prevIndex;
-                const kanjiInfo = exerciseSession.kanjiList[prevIndex];
-                currentIndex = kanjiInfo.index;
-                setHanzi(kanjiInfo.character);
-                updateExerciseGrid();
-            }
-        }
-        return;
-    }
-    
-    // Original navigation logic
-    currentIndex += Number(increment);
-    setHanzi(hanziList[currentIndex]);
 }

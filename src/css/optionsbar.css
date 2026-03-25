@@ -342,7 +342,7 @@ body.dark-theme .exercise-header {
     border-bottom-color: #444;
 }
 
-body.dark-theme .jlpt-select,
+body.dark-theme .grade-select,
 body.dark-theme .count-input {
     background-color: #3a3a3a;
     border-color: #555;
@@ -388,4 +388,23 @@ body.dark-theme .progress-bar {
 
 body.dark-theme .progress-text {
     color: #aaa;
+}
+
+/* Dark theme for resize handles */
+body.dark-theme .resize-handle {
+    background-color: rgba(74, 144, 226, 0.3);
+    border-color: #4A90E2;
+}
+
+body.dark-theme .resize-handle:hover {
+    background-color: rgba(74, 144, 226, 0.5);
+    border-color: #357ABD;
+}
+
+body.dark-theme .exercise-grid-box.dragging .exercise-header h3 {
+    color: #4A90E2;
+}
+
+body.dark-theme .exercise-grid-box.resizing {
+    box-shadow: 0 8px 30px rgba(74,144,226,0.2);
 }
