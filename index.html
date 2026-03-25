@@ -5,20 +5,21 @@
     <meta name="darkreader-lock">
     <meta charset="UTF-8" />
     <title>HanKan Write</title>
-    <script>
-      // Redirect to main.html with language parameter
-      function startQuiz() {
-        var lang = document.getElementById("lang").value;
-        const basePath = document.baseURI.replace(/\/$/, '');
-        window.location.href = `${basePath}/main.html?lang=${lang}`;
-      }
-    </script>
     <meta
       name="viewport"
       content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
+
+    <script>
+      function startQuiz() {
+        const lang = document.getElementById("lang").value;
+        // Get the base path from the base element
+        const baseHref = document.querySelector('base')?.href || '/';
+        window.location.href = baseHref + 'main.html?lang=' + lang;
+      }
+    </script>
 
     <script
       type="module"

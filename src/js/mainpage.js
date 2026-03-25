@@ -73,15 +73,17 @@ window.updateWriterColors = updateWriterColors;
 setTimeout(updateWriterColors, 100);
 
 //coming from index page
-const urlParams = new URLSearchParams(window.location.search);
-try {
-    await setLang(urlParams.get('lang'));
-    // Update grade dropdown after language is loaded
-    updateGradeDropdown();
-    startQuiz();
-} catch (error) {
-    console.error('Failed to initialize application:', error);
-}
+(async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    try {
+        await setLang(urlParams.get('lang'));
+        // Update grade dropdown after language is loaded
+        updateGradeDropdown();
+        startQuiz();
+    } catch (error) {
+        console.error('Failed to initialize application:', error);
+    }
+})();
 
 async function startQuiz() {
 target.style.display = 'block';
